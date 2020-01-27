@@ -1,4 +1,4 @@
-# Minimize-Risk-in-In-Play-Betting
+# In-Play-Betting-Loss-Minimization
 
 Generally, an individual bets on a sports match before the game starts. The initial odds for both teams are presented. With in-play betting, one can bet on the match as it occurs. Depending on how the match plays out, the odds for both teams will change. 
 
