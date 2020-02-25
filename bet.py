@@ -1,55 +1,94 @@
 
 
-def first_bet():
-    total = float(input("What is the total amount of money you are betting (in dollars)?"))
-
-    odds_one_initial = float(input("What are the odds of team 1? (X to 1, replace X)?"))
-
-    odds_two_initial = float(input("What are the odds of team 2? (X to 1, replace X)"))
-
-    initial_bet = float(input("How much money did you bet (in dollars?)"))
-
-    initial_team_bet = int(input("Which team did you bet on? (1 for team 1, 2 for team 2)"))
-
-    remaining = total - initial_bet
-
-
-    if initial_team_bet == 1:
-        initial_win_profit = (odds_one_initial - 1) * initial_bet
-
-    if initial_team_bet == 2:
-        initial_win_profit = (odds_two_initial - 1) * initial_bet
-
-    values = (initial_bet, initial_team_bet, remaining, initial_win_profit)
-
-    return values
+class Bet:
 
 
 
-def later_bets(values):
-
-    if values[1] == 1:
-        odds_two_final = float(input("What are the odds of team 2? (X to 1, replace X)"))
-        bet_value = round(values[0]/(odds_two_final - 1), 2)
-        profit_one = values[3] - bet_value
-        profit_two = bet_value * odds_two_final - (values[0] + bet_value)
-
-    if values[1] == 2:
-        odds_one_final = float(input("What are the odds of team 1? (X to 1, replace X)?"))
-        bet_value = round(values[0]/(odds_one_final - 1), 2)
-        profit_two = values[3] - bet_value
-        profit_one = bet_value * odds_one_final - (values[0] + bet_value)
-
-    information = (bet_value, profit_one, profit_two)
-
-    if bet_value < values[2]:     
-        return "Bet value: " + str(information[0]) + "\nTeam One Win: " + str(information[1]) + "\nTeam Two Win: " + str(information[2])
-
-    return "Optimal bet exceeds total."
+    # total: Total amount of starting dollars excluding what was first bet.
+    # teamOneBet: The value bet on team one.
+    # teamTwoBet: The value bet on team two.
+    # teamOneOdds: The odds of team one at that specific bet time.
+    # teamTwoOdds: The odds of team two at that specific bet time.
+    # teamOneWinProfit: The profit that the user would gain from team one winning.
+    # teamTwoWinProfit: The profit that the user would gain from team two winning.
+    # team: The team that the user last bet on (1 or 2).
+    def __init__(self, total = 0, teamOneBet = 0, teamTwoBet = 0, teamOneOdds = 1, teamTwoOdds = 1, team = 0):
+        self.total = total
+        self.teamOneBet = teamOneBet
+        self.teamTwoBet = teamTwoBet
+        self.teamOneOdds = teamOneOdds
+        self.teamTwoOdds = teamTwoOdds
+        self.teamOneWinProfit = (teamOneOdds - 1) * teamOneBet
+        self.teamTwoWinProfit = (teamTwoOdds - 1) * teamTwoBet
+        self.team = team
 
 
-bet_vals = first_bet()
-print (later_bets(bet_vals))
+    def sameTeamBet(self):
+        laterOdds = float(input("What are the odds of the team you are betting for? (X to 1, replace X)"))
+        laterBet = float(input("How much are you betting for this team?"))
+        if self.team == 1:
+            totalProfit = round(self.teamOneWinProfit + laterBet * (laterOdds - 1), 2)
+            print("Bet value: " + str(self.teamOneBet + laterBet) + "\nTeam One Win: " + str(totalProfit) + "\nTeam Two Win: " + str(-1*(self.teamOneBet + laterBet)))
+            return Bet(self.total - laterBet, self.teamOneBet + laterBet, self.teamTwoBet, laterOdds, self.teamTwoOdds, 1)
+
+        if self.team == 2:
+            totalProfit = round(self.teamTwoWinProfit + laterBet * (laterOdds - 1), 2)
+            print("Bet value: " + str(self.teamTwoBet + laterBet) + "\nTeam One Win: " + str(-1*(self.teamTwoBet + laterBet)) + "\n Team Two Win: " +  str(totalProfit))
+            return Bet(self.total - laterBet, self.teamOneBet, self.teamTwoBet + laterBet, self.teamOneOdds, laterOdds, 2)
+
+        return "Not a valid team chosen"
+
+
+    def differentTeamBet(self):
+
+        laterOdds = float(input("What are the odds of the team you are betting for? (X to 1, replace X)"))
+        if self.team == 1:
+            betValue = round(self.teamOneBet/(laterOdds - 1), 2)
+            profitInitial = round(self.teamOneWinProfit - betValue, 2)
+            profitLater = round(betValue * (laterOdds - 1) - (self.teamOneBet + betValue), 2)
+            information =  (betValue, profitInitial, profitLater)
+            if betValue <= self.total:
+                print("Bet value: " + str(information[0]) + "\nInitial Team Win: " + str(information[1]) + "\nChanged Team Win: " + str(information[2]))
+                return Bet(self.total - betValue, self.teamOneBet, betValue, 0, laterOdds, 2)
+
+        if self.team == 2:
+            betValue = round(self.teamTwoBet/(laterOdds - 1), 2)
+            profitInitial = round(self.teamTwoWinProfit - betValue, 2)
+            profitLater = round(betValue * (laterOdds - 1) - (self.teamTwoBet + betValue), 2)
+            information =  (betValue, profitInitial, profitLater)
+            if betValue <= self.total:
+                print("Bet value: " + str(information[0]) + "\nInitial Team Win: " + str(information[1]) + "\nChanged Team Win: " + str(information[2]))
+                return Bet(self.total - betValue, betValue, self.teamTwoBet, laterOdds, 0, 1)
+
+        return "betValue is greater than total amount."
+
+
+
+def main():
+
+# 90 = Total
+# 10 = Initial Bet
+# 0 = The odds 1st team
+# 3 = The odds 2nd team
+# 1/2 = Team
+    test = Bet(90, 10, 0, 3, 0, 1)
+
+    while (True):
+
+        betType = input("1 for betting on same team, 2 for betting on other team")
+
+        if betType == '1':
+            test = test.sameTeamBet()
+        
+        if betType == '2':
+            test = test.differentTeamBet()
+if __name__ == "__main__":
+    main()
+
+    
+
+# bet_vals = first_bet()
+# print (later_bets(bet_vals))
 
 
 
@@ -83,4 +122,5 @@ print (later_bets(bet_vals))
 # Bet value: 1000.0
 # Team One Win: -840.0
 # Team Two Win: 0.0
+
 
